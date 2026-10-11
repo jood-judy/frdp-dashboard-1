@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>FrPD Dashboard | Operational Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="jszip.min.js" defer></script>
+  <script src="plotly.min.js" defer></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
+  <script src="dashboard.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu icon-button" id="menuToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">☰</button>
+  <div class="mobile-scrim" id="mobileScrim" hidden></div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="FrPD Dashboard home">
+        <span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 42 42" fill="none"><path d="M23 4c1 10-7 12-5 20-6-3-7-8-6-12C4 21 9 37 21 38c10 0 16-7 16-16 0-7-5-14-14-18Z" fill="#E6B457"/><path d="M24 18c-1 8-9 9-7 16 1 3 4 5 7 5 5-1 8-5 7-10-1-4-4-7-7-11Z" fill="#E08A4B"/></svg></span>
+        <span><strong>FrPD</strong><small>OPERATIONAL DASHBOARD</small></span>
+      </a>
+      <div class="sidebar-divider"></div>
+      <div class="nav-title">WORKSPACE</div>
+      <nav class="side-nav">
+        <a class="nav-link active" href="#overview"><span class="nav-glyph">▦</span> Overview <span class="nav-dot"></span></a>
+        <a class="nav-link" href="#analytics"><span class="nav-glyph">◫</span> Analytics</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-note"><div class="sidebar-note-icon">✦</div><strong>Built for clarity.</strong><p>Reliable insight starts with trustworthy, traceable data.</p></div>
+      <div class="sidebar-bottom"><span class="online-indicator"></span><span id="sidebarDataState">Waiting for data</span><small>FrPD · 2026–2027</small></div>
+    </aside>
+
+    <main class="main">
+      <header class="page-head" id="overview">
+        <div><div class="eyebrow"><span class="eyebrow-line"></span> FIRE PROTECTION DEPARTMENT</div><h1>Operational <em>intelligence.</em></h1><p class="page-subtitle">Maintenance, quality assurance, safety, operational excellence &amp; compliance — in one connected view.</p></div>
+        <div class="header-actions"><span class="source-pill" id="sourcePill"><span class="status-dot"></span> No dataset loaded</span><button type="button" class="btn btn-primary" id="uploadBtn"><span>↥</span> Upload data</button><input type="file" id="assessmentFile" accept=".xlsx,.xls,.csv" hidden /></div>
+      </header>
+
+      <section class="warning-stack" id="warnings" aria-live="polite"></section>
+
+      <section class="filters-panel" aria-label="Dashboard filters">
+        <div class="filters-top"><div><div class="section-kicker">DATA SCOPE</div><h2>Explore your operations</h2></div><button class="text-button" id="resetFilters">↺ Reset filters</button></div>
+        <div class="filter-grid">
+          <label class="filter-control"><span>Division</span><select id="divisionFilter"><option value="all">All divisions</option><option value="WNA">Western North FrPD (WNA)</option><option value="WSA">Western South FrPD (WSA)</option><option value="CS">Central FrPD (CS)</option></select></label>
+          <label class="filter-control"><span>Assessment year</span><select id="yearFilter"><option value="all">All records (any date)</option><option value="2026">2026</option><option value="2027">2027</option></select></label>
+          <div class="filter-control tree-control"><span>Unit → Station</span><button class="tree-trigger" id="treeTrigger" aria-expanded="false" aria-controls="treePopover"><span id="treeSelectionSummary">All units &amp; stations</span><span>⌄</span></button><div class="tree-popover" id="treePopover" hidden><div class="tree-heading"><strong>Stations by unit</strong><button class="text-button" id="clearStationFilter">Select all</button></div><div class="tree-help">Select a unit or expand it to choose specific stations.</div><div class="tree-list" id="treeList"><p class="empty-small">Upload data to see units and stations.</p></div></div></div>
+        </div>
+        <div class="filter-foot"><span class="filter-hint">⌁ All metrics respond to the selected scope.</span><span class="scope-count" id="scopeCount">0 assessment records</span></div>
+      </section>
+
+      <section class="kpi-section" aria-label="Key performance indicators">
+        <div class="section-heading"><div><div class="section-kicker">PERFORMANCE AT A GLANCE</div><h2>Key indicators</h2></div><span class="section-aside">Unique stations ≠ assessment records ≠ visits</span></div>
+        <div class="kpi-columns">
+          <div class="kpi-col"><div class="col-label"><span class="col-rule"></span> COUNTS &amp; COVERAGE</div>
+            <article class="kpi-card featured-kpi"><div class="kpi-head"><span class="kpi-icon amber">⌖</span><span class="small-tag">ASSESSMENT PROXY</span></div><div class="kpi-label">Quality Assurance · station coverage <button class="info-button" data-help="coverage" aria-label="Explain coverage calculation">ⓘ</button></div><div class="kpi-value" id="visitedKpi">N/A</div><div class="kpi-support">unique stations with qualifying assessment data</div><label class="qa-basis">Qualifying function <select id="qaBasis"><option value="all">Any assessment (proxy)</option><option value="Compliance">Compliance only (proxy)</option></select></label><div class="split-stat"><span><strong id="totalStations">N/A</strong><small>Total stations</small></span><span><strong id="notVisited">N/A</strong><small>Not visited</small></span></div></article>
+            <div class="mini-kpi-grid"><article class="kpi-card mini-kpi"><div class="kpi-head"><span class="kpi-icon rust">◇</span></div><div class="kpi-label">Safety tours</div><div class="kpi-value" id="safetyTours">N/A</div><div class="kpi-support" id="safetyToursDetail">Actual tour count needs visit IDs</div></article><article class="kpi-card mini-kpi"><div class="kpi-head"><span class="kpi-icon peach">✧</span></div><div class="kpi-label">Operational excellence</div><div class="kpi-value" id="operationalExcellence">N/A</div><div class="kpi-support" id="operationalExcellenceDetail">Actual visit count needs visit IDs</div></article></div>
+          </div>
+          <div class="kpi-col"><div class="col-label"><span class="col-rule red"></span> PERFORMANCE RATES</div>
+            <article class="kpi-card rate-card"><div class="rate-copy"><span class="kpi-label">Visit completion <button class="info-button" data-help="coverage" aria-label="Explain visit completion">ⓘ</button></span><strong id="visitPct">N/A</strong><small>Unique visited / total scoped stations</small></div><div class="rate-meter" style="--meter:#E08A4B" data-meter="visitPct"><span id="visitPctInner">—</span></div></article>
+            
+            
+            <article class="kpi-card rate-card"><div class="rate-copy"><span class="kpi-label">Safety rate <button class="info-button" data-help="safety" aria-label="Explain safety rate">ⓘ</button></span><strong id="safetyPct">N/A</strong><small>Function: Safety &amp; Safety Tour · Yes / (Yes + No)</small></div><div class="rate-meter" style="--meter:#E6B457" data-meter="safetyPct"><span id="safetyPctInner">—</span></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="analytics-section" id="analytics"><div class="section-heading"><div><div class="section-kicker">DEEPER VISIBILITY</div><h2>Performance analytics</h2></div><span class="section-aside">Only uploaded data · no inferred severity</span></div>
+        <div class="charts-grid chart-wide-right"><article class="panel chart-panel"><div class="panel-top"><div><h3>Competence indicators</h3><p>Interview &amp; On Job Readiness · Yes vs No; N/A excluded</p></div><span class="pill">COMPLIANCE STATUS</span></div><div id="competenceChart" class="chart chart-donut"></div><div class="chart-note" id="competenceNote"></div></article><article class="panel chart-panel"><div class="panel-top"><div><h3>Items by type</h3><p>Number of assessment records in each type</p></div><span class="pill">RECORD COUNTS</span></div><div id="typeChart" class="chart chart-bars"></div></article></div>
+        <div class="charts-grid lower-charts single"><article class="panel"><div class="panel-top"><div><h3>Top 5 repeated control measures</h3><p>Grouped by normalized Control Measure · Compliance = No</p></div><span class="pill">BY FREQUENCY</span></div><div id="repeatedMeasures" class="ranked-list"></div></article></div>
+      </section>
+
+      
+
+      
+      <footer class="footer"><span>FrPD Dashboard · Operational Excellence &amp; Compliance</span><span>Local processing only · © 2026 FrPD</span></footer>
+    </main>
+  </div>
+  <!-- Station master (Unit → Stations). Fill "division" with WNA, WSA or CS to fix a unit's division; if blank it is taken from the uploaded data. -->
+  <script type="application/json" id="stationMaster">
+[ {"unit": "Y1", "division": "", "stations": ["Y1.1"]},
+ {"unit": "Y2", "division": "", "stations": ["Y2.1"]},
+ {"unit": "N3", "division": "", "stations": ["T3.1", "M3.2"]},
+ {"unit": "S4", "division": "", "stations": ["J4.1"]},
+ {"unit": "J5", "division": "", "stations": ["J5.1"]},
+ {"unit": "R6", "division": "", "stations": ["R6.1", "N6.2"]},
+ {"unit": "R7", "division": "", "stations": ["R7.1"]},
+ {"unit": "K8", "division": "", "stations": ["K8.1"]},
+ {"unit": "E\\W9", "division": "", "stations": ["PS9.1", "PS9.2", "PS9.3"]},
+ {"unit": "C10", "division": "", "stations": ["Q10.1"]},
+ {"unit": "J11", "division": "", "stations": ["J11.1"]}
+]
+</script>
+  <dialog id="helpDialog" class="help-dialog"><form method="dialog"><button aria-label="Close explanation" class="dialog-close">×</button><h3 id="helpTitle"></h3><p id="helpText"></p><button class="btn btn-primary">Got it</button></form></dialog>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+</body>
+</html>
